@@ -1,0 +1,41 @@
+{
+  "name": "fancy",
+  "title": "Fancy",
+  "description": "JavaScript Template-Plugin for Fancy",
+  "version": "1.0.0",
+  "main": "fancy.js",
+  "homepage": "http://mephiztopheles.wtf/fancy.template",
+  "author": {
+    "name": "Markus Ahrweiler"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mephiztopheles/fancy.template.git"
+  },
+  "ignore": [
+    "source",
+    "spec",
+    ".bowerrc",
+    ".gitignore",
+    ".jshintignore",
+    ".jshintrc",
+    "bower.json",
+    "gruntfile.js",
+    "package.json",
+    "README.md"
+  ],
+  "keywords": [
+    "fancy",
+    "javascript",
+    "browser",
+    "library"
+  ],
+  "bugs": {
+    "url": "https://github.com/Mephiztopheles/fancy.template/issues"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "fancy": ">=1.0.8",
+    "fancy-template": ">=0.0.1"
+  }
+}

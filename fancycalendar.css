@@ -1,3 +1,19 @@
-.FancyCalendar {
+.FancyCalendar-table {
     width : 100%;
+}
+
+.FancyCalendar td:first-child {
+    width : 100px;
+}
+
+.FancyCalendar-events-body {
+    vertical-align: top;
+}
+
+.FancyCalendar-head-day,
+.FancyCalendar-events-day {
+    position : relative;
+    float      : left;
+    width      : 14.285714285714286%;
+    min-height : 1px;
 }

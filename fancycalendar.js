@@ -3,6 +3,8 @@
     var NAME      = "FancyCalendar",
         logged    = false,
         VERSION   = "0.0.1",
+        SETTINGS  = [],
+        id        = 0,
         templates = [];
 
 
@@ -17,24 +19,35 @@
     }
 
     function FancyCalendar( el, settings ) {
-        var SELF       = this;
-        SELF.element   = el;
+        this.element   = el;
         this.events    = [];
-        SELF.settings  = $.extend( {}, Fancy.settings [ NAME ], settings );
-        this.clear();
-        var calendar   = SELF.settings.templatePath + "calendar.html",
+        this.id        = id++;
+        this.settings  = $.extend( {}, Fancy.settings [ NAME ], settings );
+        var SELF       = this,
+            calendar   = SELF.settings.templatePath + "calendar.html",
             event      = SELF.settings.templatePath + "event.html";
-        SELF.templates = {
+        this.templates = {
             calendar: templates[ calendar ],
             event   : templates[ event ]
         };
+
+        SETTINGS[ this.id ] = {
+            outstandingEvents: function() { },
+            delayedFunctions : [],
+            eventID          : 0
+        };
+
         if( Fancy.template ) {
             Fancy.loadTemplate( calendar )( function( template ) {
                 SELF.templates.calendar = template;
                 SELF.element            = replaceWith( el, template );
+                SETTINGS[ SELF.id ].delayedFunctions.forEach( function( it ) {
+                    it();
+                } );
             } );
             Fancy.loadTemplate( event )( function( template ) {
                 SELF.templates.event = template;
+                SETTINGS[ SELF.id ].outstandingEvents();
             } );
         } else {
             if( !SELF.templates.calendar ) {
@@ -45,6 +58,9 @@
                         templates[ calendar ]   = $( html );
                         SELF.templates.calendar = templates[ calendar ];
                         SELF.element            = replaceWith( el, SELF.templates.calendar );
+                        SETTINGS[ SELF.id ].delayedFunctions.forEach( function( it ) {
+                            it();
+                        } );
                     }
                 } );
             } else {
@@ -57,11 +73,13 @@
                     success: function( html ) {
                         templates[ event ]   = $( html );
                         SELF.templates.event = templates[ event ];
+                        SETTINGS[ SELF.id ].outstandingEvents();
                     }
                 } );
             }
         }
 
+        this.clear();
         if( !logged ) {
             logged = true;
             Fancy.version( SELF );
@@ -73,12 +91,19 @@
     FancyCalendar.api.version = VERSION;
     FancyCalendar.api.name    = NAME;
     FancyCalendar.api.event   = function() {
-        var events = [];
+        var events = [],
+            SELF   = this;
         if( Fancy.getType( arguments[ 0 ] ) == "array" ) {
             events = arguments[ 0 ];
         } else {
             events = Array.prototype.slice.call( arguments );
         }
+        events.forEach( function( it ) {
+            Object.defineProperty( it, "$id", {
+                value   : SETTINGS[ SELF.id ].eventID++,
+                writable: false, enumerable: false, configurable: false
+            } );
+        } );
         $.merge( this.events, events );
         this.clear();
         this.addEvents();
@@ -86,20 +111,38 @@
     };
 
     FancyCalendar.api.clear     = function() {
-        this.skeleton = {
-            head: this.element.find( "." + NAME + "-head" ),
-            body: this.element.find( "." + NAME + "-body" ).html( "" )
-        };
+        var SELF = this;
+        if( SELF.templates.calendar ) {
+            this.skeleton = {
+                head: this.element.find( "." + NAME + "-head" ),
+                body: this.element.find( "." + NAME + "-events-body" ).html( "" )
+            };
+            var i         = 0;
+            while( i < 7 ) {
+                i++;
+                this.skeleton.body.append( $( "<div/>", { "class": NAME + "-events-day" } ) );
+            }
+
+        } else {
+            SETTINGS[ this.id ].delayedFunctions.push( function() {
+                SELF.clear();
+            } );
+        }
     };
     FancyCalendar.api.addEvents = function() {
-        var SELF     = this;
-        this._events = [];
-        this.events.forEach( function( event, i ) {
-            console.log( SELF.templates );
-            var tpl = SELF.templates.event.clone();
-            SELF._events.push( Fancy( tpl ).template( { scope: event } ).compile() );
-            SELF.skeleton.body.append( tpl );
-        } );
+        var SELF = this;
+        if( SELF.templates.event && SELF.templates.calendar ) {
+            this._events = [];
+            this.events.forEach( function( event, i ) {
+                var tpl = SELF.templates.event.clone();
+                SELF._events.push( Fancy( tpl ).template( { scope: event } ).compile() );
+                $( SELF.skeleton.body.find( "." + NAME + "-events-day" )[ event.startDate.getDay() - 1 ] ).append( tpl );
+            } );
+        } else {
+            SETTINGS[ this.id ].outstandingEvents = function() {
+                SELF.addEvents();
+            };
+        }
     };
 
     Fancy.settings [ NAME ] = {

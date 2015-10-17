@@ -36,6 +36,6 @@
   "license": "MIT",
   "dependencies": {
     "fancy": ">=1.0.8",
-    "fancy-template": ">=0.0.1"
+    "fancy-template": "#master"
   }
 }

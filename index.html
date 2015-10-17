@@ -7,11 +7,26 @@
     <body>
         <div id="calendar"></div>
         <script src="fancycalendar.js"></script>
-        <script src="fancytemplate.js"></script>
         <script>
             var calendar;
+            Fancy.templateFilter( "date", function( value ) {
+                return value.toLocaleDateString();
+            } );
+            Fancy.templateFilter( "time", function( value ) {
+                return value.toLocaleTimeString();
+            } );
+            var events = [ {
+                name     : "Test",
+                startDate: new Date(),
+                endDate  : new Date( new Date().getTime() + 4000 )
+            }, {
+                name     : "Termin",
+                startDate: new Date( 2015, 10, 5, 8 ),
+                endDate  : new Date( 2015, 10, 5, 15 )
+            } ];
             $( function() {
                 calendar = Fancy( "#calendar" ).calendar();
+                calendar.event( events );
             } );
         </script>
     </body>

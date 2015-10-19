@@ -1,19 +1,63 @@
+.FancyCalendar-body {
+    position : relative;
+}
+
 .FancyCalendar-table {
-    width : 100%;
+    width          : 100%;
+    border-spacing : 0;
+    table-layout   : fixed;
 }
 
 .FancyCalendar td:first-child {
     width : 100px;
 }
 
+.FancyCalendar-skeleton {
+    position : absolute;
+    top      : 0;
+    left     : 0;
+    height   : 100%;
+    bottom   : 0;
+}
+
+.FancyCalendar-body-day-hour {
+    border-left : 1px solid #CECECE;
+    border-top  : 1px solid #CECECE;
+    width       : calc((100% - 100px) / 7);
+}
+
+.FancyCalendar-body-day-hour:last-child {
+    border-right : 1px solid #CECECE;
+}
+
+.FancyCalendar-body-day:last-child .FancyCalendar-body-day-hour {
+    border-bottom : 1px solid #CECECE;
+}
+
+.FancyCalendar-body-day-time {
+    height : 50px;
+}
+
 .FancyCalendar-events-body {
-    vertical-align: top;
+    vertical-align : top;
 }
 
 .FancyCalendar-head-day,
 .FancyCalendar-events-day {
-    position : relative;
-    float      : left;
     width      : 14.285714285714286%;
+    position   : relative;
+    float      : left;
     min-height : 1px;
+}
+
+/*.FancyCalendar-events-day:nth-child(n+1) {
+    left:
+}*/
+
+.FancyCalendar-event {
+    position : absolute;
+    top      : 0;
+    left     : 0;
+    right    : 0;
+    overflow : hidden;
 }

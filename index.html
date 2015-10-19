@@ -18,14 +18,14 @@
             var events = [ {
                 name     : "Test",
                 startDate: new Date(),
-                endDate  : new Date( new Date().getTime() + 4000 )
+                endDate  : new Date( new Date().getTime() + 3600000 )
             }, {
                 name     : "Termin",
-                startDate: new Date( 2015, 10, 5, 8 ),
-                endDate  : new Date( 2015, 10, 5, 15 )
+                startDate: new Date( 2015, 10, 19, 8 ),
+                endDate  : new Date( 2015, 10, 19, 15 )
             } ];
             $( function() {
-                calendar = Fancy( "#calendar" ).calendar();
+                calendar = Fancy( "#calendar" ).weekCalendar();
                 calendar.event( events );
             } );
         </script>

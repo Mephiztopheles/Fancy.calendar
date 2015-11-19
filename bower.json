@@ -1,16 +1,16 @@
 {
-  "name": "fancy",
-  "title": "Fancy",
-  "description": "JavaScript Template-Plugin for Fancy",
+  "name": "fancy-calendar",
+  "title": "FancyCalendar",
+  "description": "JavaScript Calendar-Plugin for Fancy",
   "version": "1.0.0",
   "main": "fancy.js",
-  "homepage": "http://mephiztopheles.wtf/fancy.template",
+  "homepage": "http://mephiztopheles.wtf/fancy.calendar",
   "author": {
     "name": "Markus Ahrweiler"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Mephiztopheles/fancy.template.git"
+    "url": "https://github.com/Mephiztopheles/fancy.calendar.git"
   },
   "ignore": [
     "source",
@@ -31,7 +31,7 @@
     "library"
   ],
   "bugs": {
-    "url": "https://github.com/Mephiztopheles/fancy.template/issues"
+    "url": "https://github.com/Mephiztopheles/fancy.calendar/issues"
   },
   "license": "MIT",
   "dependencies": {
@@ -39,4 +39,5 @@
     "fancy-template": "#master",
     "fancy-promise": ">=0.0.1"
   }
+
 }

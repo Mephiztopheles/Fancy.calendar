@@ -19,10 +19,10 @@
     }
 
     function FancyCalendar( el, settings ) {
-        this.element     = el;
-        this.events      = [];
-        this.id          = id++;
-        this.settings    = $.extend( {}, Fancy.settings [ NAME ], settings );
+        this.element  = el;
+        this.events   = [];
+        this.id       = id++;
+        this.settings = $.extend( {}, Fancy.settings [ NAME ], settings );
         Fancy.check( this.settings, {
             eventStartField: { type: "String", required: true },
             eventEndField  : { type: "String", required: true },
@@ -43,17 +43,19 @@
             eventID          : 0
         };
 
+        var p1        = Fancy.promise(),
+            p2        = Fancy.promise();
+        this.promises = [];
         if( Fancy.template ) {
+            this.promises.push( p1, p2 );
             Fancy.loadTemplate( weekCalendar )( function( template ) {
                 SELF.templates.weekCalendar = template;
                 SELF.element                = replaceWith( el, template );
-                SETTINGS[ SELF.id ].delayedFunctions.forEach( function( it ) {
-                    it();
-                } );
+                p1.resolve();
             } );
             Fancy.loadTemplate( event )( function( template ) {
                 SELF.templates.event = template;
-                SETTINGS[ SELF.id ].outstandingEvents();
+                p2.resolve();
             } );
         } else {
             if( !SELF.templates.weekCalendar ) {
@@ -64,10 +66,7 @@
                         templates[ weekCalendar ]   = $( html );
                         SELF.templates.weekCalendar = templates[ weekCalendar ];
                         SELF.element                = replaceWith( el, SELF.templates.weekCalendar );
-                        SETTINGS[ SELF.id ].delayedFunctions.forEach( function( it ) {
-                            it();
-                        } );
-                        SETTINGS[ SELF.id ].outstandingEvents();
+                        p1.resolve();
                     }
                 } );
             } else {
@@ -80,7 +79,7 @@
                     success: function( html ) {
                         templates[ event ]   = $( html );
                         SELF.templates.event = templates[ event ];
-                        SETTINGS[ SELF.id ].outstandingEvents();
+                        p2.resolve();
                     }
                 } );
             }
@@ -119,44 +118,37 @@
 
     FancyCalendar.api.clear       = function() {
         var SELF = this;
-        if( SELF.templates.weekCalendar ) {
-            this.skeleton = {
-                head: this.element.find( "." + NAME + "-head" ),
-                body: this.element.find( "." + NAME + "-events-body" ).html( "" )
+        this.promises[ 0 ].then( function() {
+            SELF.skeleton = {
+                head: SELF.element.find( "." + NAME + "-head" ),
+                body: SELF.element.find( "." + NAME + "-events-body" ).html( "" )
             };
             var i         = 0;
             while( i < 7 ) {
                 i++;
-                this.skeleton.body.append( $( "<div/>", { "class": NAME + "-events-day" } ) );
+                SELF.skeleton.body.append( $( "<div/>", { "class": NAME + "-events-day" } ) );
             }
-
-        } else {
-            SETTINGS[ this.id ].delayedFunctions.push( function() {
-                SELF.clear();
-            } );
-        }
+        } );
     };
     FancyCalendar.api.addEvents   = function() {
         var SELF = this;
-        if( SELF.templates.event && SELF.templates.weekCalendar ) {
-            this._events = [];
-            this.events.forEach( function( event, i ) {
+        Fancy.promise.all( this.promises ).then( function() {
+            SELF._events = [];
+            SELF.events.forEach( function( event, i ) {
                 var tpl = SELF.templates.event.clone();
                 SELF._events.push( Fancy( tpl ).template( { scope: event } ).compile() );
                 $( SELF.skeleton.body.find( "." + NAME + "-events-day" )[ event.startDate.getDay() - 1 ] ).append( tpl );
             } );
-            this.styleEvents();
-        } else {
-            SETTINGS[ this.id ].outstandingEvents = function() {
-                SELF.addEvents();
-            };
-        }
+            SELF.styleEvents();
+        } );
     };
     FancyCalendar.api.styleEvents = function() {
         var SELF       = this,
             fullHeight = this.skeleton.body.height();
         this.events.forEach( function( it, index ) {
-            console.log( it, it[ SELF.settings.eventEndField ].getHours() - it[ SELF.settings.eventStartField ].getHours() );
+            var start = new Date( it[ SELF.settings.eventStartField ] ),
+                end   = new Date( it[ SELF.settings.eventEndField ] );
+            console.log( it, end.getHours() - start.getHours() );
             SELF._events[ index ].element.css( {
                 top: fullHeight / 24 * it[ SELF.settings.eventStartField ].getHours()
             } );

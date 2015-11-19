@@ -3,6 +3,30 @@
         <link href="fancycalendar.css" rel="stylesheet" type="text/css"/>
         <script src="bower_components/fancy/fancy.min.js"></script>
         <script src="bower_components/fancy-template/fancytemplate.min.js"></script>
+        <script src="bower_components/fancy-promise/fancypromise.min.js"></script>
+        <style>
+            html, * {
+                margin  : 0;
+                padding : 0;
+                outline : 0;
+            }
+
+            .FancyCalendar-head {
+                position      : fixed;
+                background    : #FFF;
+                top           : 0;
+                z-index       : 1;
+                border-bottom : 1px solid #CECECE;
+            }
+
+            .FancyCalendar-body {
+                margin-top : 19px;
+            }
+
+            .FancyCalendar-event {
+                background : rgba(33, 158, 60, 0.46);;
+            }
+        </style>
     </head>
     <body>
         <div id="calendar"></div>

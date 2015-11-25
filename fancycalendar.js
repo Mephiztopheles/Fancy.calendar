@@ -6,7 +6,9 @@
         SETTINGS  = [],
         id        = 0,
         templates = [];
-
+    Fancy.install( "criteria", "0.0.2" );
+    Fancy.install( "template", "0.0.3" );
+    Fancy.install( "promise", "0.0.1" );
 
     function replaceWith( el, template ) {
 
@@ -16,6 +18,21 @@
             template.attr( it.name, it.nodeValue );
         } );
         return template;
+    }
+
+    function unique( array, key ) {
+        var flags = [], output = [], l = array.length, i;
+        for( i = 0; i < l; i++ ) {
+            if( array.hasOwnProperty( i ) ) {
+                var k = Fancy.getKey( array[ i ], key );
+                if( flags[ k ] ) {
+                    continue;
+                }
+                flags[ k ]  = true;
+                output[ i ] = ( array[ i ] );
+            }
+        }
+        return output;
     }
 
     function FancyCalendar( el, settings ) {
@@ -38,9 +55,7 @@
         };
 
         SETTINGS[ this.id ] = {
-            outstandingEvents: function() { },
-            delayedFunctions : [],
-            eventID          : 0
+            eventID: 0
         };
 
         var p1        = Fancy.promise(),
@@ -111,12 +126,30 @@
             } );
         } );
         $.merge( this.events, events );
+        this.events.sort( function( a, b ) {
+            var aS = a[ SELF.settings.eventStartField ],
+                bS = b[ SELF.settings.eventStartField ],
+                aE = a[ SELF.settings.eventEndField ],
+                bE = b[ SELF.settings.eventEndField ];
+
+            // a starts
+            if( aS < bS ) {
+                if( aE < bE && aS + aE <= bS + bE ) {
+                    console.log( "%s will be after %s", a.name, b.name );
+                    //return 1
+                }
+                return -1;
+            } else if( aS > bS ) {
+                return 1;
+            }
+            return 0;
+        } );
         this.clear();
         this.addEvents();
         return this;
     };
 
-    FancyCalendar.api.clear       = function() {
+    FancyCalendar.api.clear     = function() {
         var SELF = this;
         this.promises[ 0 ].then( function() {
             SELF.skeleton = {
@@ -130,7 +163,7 @@
             }
         } );
     };
-    FancyCalendar.api.addEvents   = function() {
+    FancyCalendar.api.addEvents = function() {
         var SELF = this;
         Fancy.promise.all( this.promises ).then( function() {
             SELF._events = [];
@@ -142,17 +175,90 @@
             SELF.styleEvents();
         } );
     };
+
+
     FancyCalendar.api.styleEvents = function() {
         var SELF       = this,
             fullHeight = this.skeleton.body.height();
-        this.events.forEach( function( it, index ) {
-            var start = new Date( it[ SELF.settings.eventStartField ] ),
-                end   = new Date( it[ SELF.settings.eventEndField ] );
-            console.log( it, end.getHours() - start.getHours() );
-            SELF._events[ index ].element.css( {
-                top: fullHeight / 24 * it[ SELF.settings.eventStartField ].getHours()
+
+        function getOverlap( event ) {
+
+            function search( it ) {
+                var start                            = new Date( event[ SELF.settings.eventStartField ] ),
+                    end                              = new Date( event[ SELF.settings.eventEndField ] );
+                var criteria                         = Fancy.criteria( SELF.events );
+                var criteriaStartEarlierAndEndInTime = criteria.copy(),
+                    criteriaStartLaterAndEndLater    = criteria.copy(),
+                    criteriaStartLaterAndEndInTime   = criteria.copy();
+                // event starts earlier than this
+                criteriaStartEarlierAndEndInTime.and( Fancy.criteria.LOWER_THAN_EQUALS, SELF.settings.eventStartField, start.getTime() );
+                // event ends later than this
+                criteriaStartEarlierAndEndInTime.and( Fancy.criteria.GREATER_THAN, SELF.settings.eventEndField, start.getTime() );
+
+
+                // event event starts later than this
+                criteriaStartLaterAndEndLater.and( Fancy.criteria.GREATER_THAN_EQUALS, SELF.settings.eventStartField, start.getTime() );
+                // event starts earlier than this ends
+                criteriaStartLaterAndEndLater.and( Fancy.criteria.LOWER_THAN, SELF.settings.eventStartField, end.getTime() );
+                // event ends later than this
+                criteriaStartLaterAndEndLater.and( Fancy.criteria.GREATER_THAN, SELF.settings.eventEndField, end.getTime() );
+
+
+                // event starts later than this
+                criteriaStartLaterAndEndInTime.and( Fancy.criteria.GREATER_THAN_EQUALS, SELF.settings.eventStartField, start.getTime() );
+                // event ends earlier than this
+                criteriaStartLaterAndEndInTime.and( Fancy.criteria.LOWER_THAN_EQUALS, SELF.settings.eventEndField, end.getTime() );
+                criteriaStartLaterAndEndLater    = criteriaStartLaterAndEndLater.list( true );
+                criteriaStartEarlierAndEndInTime = criteriaStartEarlierAndEndInTime.list( true );
+                criteriaStartLaterAndEndInTime   = criteriaStartLaterAndEndInTime.list( true );
+                var list                         = [];
+                criteriaStartEarlierAndEndInTime.forEach( function( a, b ) {
+                    list[ b ] = a;
+                } );
+                criteriaStartLaterAndEndLater.forEach( function( a, b ) {
+                    list[ b ] = a;
+                } );
+                criteriaStartLaterAndEndInTime.forEach( function( a, b ) {
+                    list[ b ] = a;
+                } );
+                return list;
+            }
+
+            var eventList  = search( event ),
+                eventChild = [];
+            eventList.forEach( function( it ) {
+                search( it ).forEach( function( a, b ) {
+                    eventChild[ b ] = a;
+                } );
             } );
-            SELF._events[ index ].element.height( fullHeight / 24 * (it[ SELF.settings.eventEndField ].getHours() - it[ SELF.settings.eventStartField ].getHours()) )
+            eventChild.forEach( function( a, b ) {
+                eventList[ b ] = a;
+            } );
+            return unique( eventList, "$id" );
+        }
+
+        this.events.forEach( function( it, index ) {
+            SELF._events[ index ].element.css( {
+                top: (fullHeight / 24 * it[ SELF.settings.eventStartField ].getHours()) + (fullHeight / 1440 * (it[ SELF.settings.eventStartField ].getMinutes()))
+            } );
+            var eventList = getOverlap( it );
+            var l         = 0;
+            eventList.forEach( function() {
+                l++;
+            } );
+            var c = 0;
+            eventList.forEach( function( ev, i ) {
+                SELF._events[ i ].element.css( {
+                    left : ((100 / l) * c) + "%",
+                    width: (100 / l) + "%"
+                } );
+                c++;
+            } );
+            //console.log( it.name, eventList, criteriaStartEarlierAndEndInTime, criteriaStartLaterAndEndLater, criteriaStartLaterAndEndInTime );
+            var hours   = fullHeight / 24 * (it[ SELF.settings.eventEndField ].getHours() - it[ SELF.settings.eventStartField ].getHours()),
+                minutes = fullHeight / 1440 * (it[ SELF.settings.eventEndField ].getMinutes() - it[ SELF.settings.eventStartField ].getMinutes()),
+                height  = hours + minutes;
+            SELF._events[ index ].element.height( height )
         } );
     };
 

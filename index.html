@@ -1,9 +1,14 @@
 <html>
     <head>
         <link href="fancycalendar.css" rel="stylesheet" type="text/css"/>
+        <meta charset="UTF-8">
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
         <script src="bower_components/fancy/fancy.min.js"></script>
+
         <script src="bower_components/fancy-template/fancytemplate.min.js"></script>
         <script src="bower_components/fancy-promise/fancypromise.min.js"></script>
+        <script src="bower_components/fancy-criteria/fancycriteria.min.js"></script>
+        <script src="fancycalendar.js"></script>
         <style>
             html, * {
                 margin  : 0;
@@ -24,13 +29,12 @@
             }
 
             .FancyCalendar-event {
-                background : rgba(33, 158, 60, 0.46);;
+                background : rgba(33, 158, 60, 0.46);
             }
         </style>
     </head>
     <body>
         <div id="calendar"></div>
-        <script src="fancycalendar.js"></script>
         <script>
             var calendar;
             Fancy.templateFilter( "date", function( value ) {
@@ -46,7 +50,27 @@
             }, {
                 name     : "Termin",
                 startDate: new Date( 2015, 10, 19, 8 ),
-                endDate  : new Date( 2015, 10, 19, 15 )
+                endDate  : new Date( 2015, 10, 19, 12 )
+            }, {
+                name     : "Termin 2",
+                startDate: new Date( 2015, 10, 19, 7 ),
+                endDate  : new Date( 2015, 10, 19, 11 )
+            }, {
+                name     : "Termin 6",
+                startDate: new Date( 2015, 10, 19, 11 ),
+                endDate  : new Date( 2015, 10, 19, 14 )
+            }, {
+                name     : "Termin 3",
+                startDate: new Date( 2015, 10, 19, 6 ),
+                endDate  : new Date( 2015, 10, 19, 13 )
+            }, {
+                name     : "Termin 4",
+                startDate: new Date( 2015, 10, 19, 15, 15 ),
+                endDate  : new Date( 2015, 10, 19, 17, 15 )
+            }, {
+                name     : "Termin 5",
+                startDate: new Date( 2015, 10, 19, 17 ),
+                endDate  : new Date( 2015, 10, 19, 23 )
             } ];
             $( function() {
                 calendar = Fancy( "#calendar" ).weekCalendar();
